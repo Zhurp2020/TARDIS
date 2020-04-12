@@ -6,7 +6,6 @@ from WordClass import *
 # 来源与用于request的网址
 SearcherDict = {'dictionary.com': 'https://www.dictionary.com/browse/{}#'}
 
-
 class WordSearcher():
     '''
     查找单词，返回相应网页的html代码
@@ -14,13 +13,19 @@ class WordSearcher():
     NewWordSearcher = WordSearcher('dictionary.com')   
     SearchResult = NewWordSearcher.search('test')
     '''
-
+    
     def __init__(self, target):
         self.target = target
 
     def search(self, word):
         return requests.get(SearcherDict[self.target].format(word)).text
 
+
+class NoSuchWord(Exception):
+    '''
+    未找到，抛出异常
+    '''
+    pass
 
 def GetTagString(tag):
     '''
@@ -36,13 +41,18 @@ def GetTagString(tag):
 
 
 def ParserDic_com(soup):
+    NoResult = soup.find(class_='no-results-title css-1w0dr93 e6aw9qa0')
+    if NoResult :
+        raise NoSuchWord()
     WordList = []
-    WrodSectionList = []
+    WordSectionList = []
     WordNumList = soup.find_all(id='luna-section')
-    WrodSectionList.append(soup.find(class_='css-1urpfgu e16867sm0'))
+    WordSectionList.append(soup.find(class_='css-1urpfgu e16867sm0'))
     for WordNumTag in WordNumList:
-        WrodSectionList.append(WordNumTag.next_sibling)
-    for WordSectionTag in WrodSectionList:
+        WordSectionList.append(WordNumTag.next_sibling)
+    for WordSectionTag in WordSectionList:
+        spelling = WordSectionTag.find(class_='css-1jzk4d9 e1rg2mtf8').string
+        phonetic = GetTagString(WordSectionTag.find(class_='pron-ipa-content css-z3mf2 evh0tcl2')) 
         PoSList = WordSectionTag.find_all(class_='css-pnw38j e1hk9ate0')
         DefinitionList = []
         for PosTag in PoSList:
@@ -63,7 +73,8 @@ def ParserDic_com(soup):
                     Def = Definition(content=content, PoS=PoS, inflect=inflect, phrase=phrase,
                                     special=special, example=example)
                     DefinitionList.append(Def)
-        WordList.append(DefinitionList)
+        word = Word(spelling=spelling,phonetic=phonetic,definitions=DefinitionList)
+        WordList.append(word)
     return WordList
 
 
@@ -85,12 +96,15 @@ class HTMLParser():
         return ParserDict[self.source](soup)
 
 '''
+word = 'tttt'
 NewWordSearcher = WordSearcher('dictionary.com')
-SearchResult = NewWordSearcher.search('test')
+SearchResult = NewWordSearcher.search(word)
 NewParser = HTMLParser('dictionary.com')
-WordList = NewParser.parse(SearchResult)
-for i in WordList[0]:
-    print(i.get_def())
-    for j in i:
-        print(j.get_def())
+try :
+    WordList = NewParser.parse(SearchResult)
+    for i in WordList:
+        i.show()
+except NoSuchWord:
+    print('No Such Word: {}'.format(word))
 '''
+
