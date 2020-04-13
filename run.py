@@ -40,8 +40,14 @@ class T_Ui(QtWidgets.QWidget, Ui_Dialog):
         self.SearchButton.clicked.connect(self.load)
 
     def SearchComplete(self,WordList) :
+        '''
+        结果显示
+        '''
         self.LoadingLabel.setText('')
         
+        for i in reversed(range(self.ResultGridLayout.count())) :
+            self.ResultGridLayout.itemAt(i).widget().deleteLater()
+
         CountRow = 0
         for i in range(len(WordList)) :
             word = WordList[i]
