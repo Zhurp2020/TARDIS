@@ -41,6 +41,14 @@ def GetTagString(tag):
 
 
 def ParserDic_com(soup):
+
+    PoSDict = {
+            'noun':'n.',
+            'verb (used with object)': 'v.t.',
+            'verb (used without object)': 'v.i.',
+            '':''
+            }
+
     NoResult = soup.find(class_='no-results-title css-1w0dr93 e6aw9qa0')
     if NoResult :
         raise NoSuchWord()
@@ -58,7 +66,7 @@ def ParserDic_com(soup):
         for PosTag in PoSList:
             inflect = GetTagString(PosTag.find_all(
                 class_='luna-inflected-form'))
-            PoS = GetTagString(PosTag.find(class_='luna-pos'))
+            PoS = PoSDict[GetTagString(PosTag.find(class_='luna-pos'))] 
             DefTagList = PosTag.find_all(class_='e1q3nk1v3')
             for DefTag in DefTagList:
                 special = GetTagString(DefTag.find_all(class_='luna-label'))
@@ -75,7 +83,9 @@ def ParserDic_com(soup):
                     DefinitionList.append(Def)
         word = Word(spelling=spelling,phonetic=phonetic,definitions=DefinitionList)
         WordList.append(word)
-    return WordList
+    ExampleTagList = soup.find(class_='css-7w6khc e1md2px10').find(class_='expandable content-hidden css-14189ta-StatelessExpandableWrapper e1fc5zsj0').find_all(class_='one-click-content css-a8m74p e15kc6du6')
+    ExampleList = [''.join(i.strings) for i in ExampleTagList ]
+    return [WordList,ExampleList]
 
 
 ParserDict = {'dictionary.com': ParserDic_com}
@@ -95,16 +105,21 @@ class HTMLParser():
         soup = bs4.BeautifulSoup(HTMLCode, features="html.parser")
         return ParserDict[self.source](soup)
 
+
 '''
-word = 'tttt'
+word = 'test'
 NewWordSearcher = WordSearcher('dictionary.com')
 SearchResult = NewWordSearcher.search(word)
 NewParser = HTMLParser('dictionary.com')
 try :
-    WordList = NewParser.parse(SearchResult)
-    for i in WordList:
+    result = NewParser.parse(SearchResult)
+    
+    for i in result[0]:
         i.show()
+    
+    for i in result[1]  :
+        print(i)
 except NoSuchWord:
     print('No Such Word: {}'.format(word))
-'''
+''' 
 

@@ -16,8 +16,8 @@ class SearchWordWorker(QtCore.QObject) :
         SearchResult = NewSearcher.search(word)
         NewParser = HTMLParser('dictionary.com')
         try :
-            WordList = NewParser.parse(SearchResult)
-            self.SearchDone.emit(WordList)
+            ResultList = NewParser.parse(SearchResult)
+            self.SearchDone.emit(ResultList)
         except :
             self.SearchFail.emit()
 class T_Ui(QtWidgets.QWidget, Ui_Dialog):
@@ -39,43 +39,65 @@ class T_Ui(QtWidgets.QWidget, Ui_Dialog):
         #按钮信号连接
         self.SearchButton.clicked.connect(self.load)
 
-    def SearchComplete(self,WordList) :
+
+    def CreateResultLabel(self,content,FontSize:int,position:tuple) :
+        self.ResultLabel = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.ResultLabel.setMinimumSize(QtCore.QSize(40, 30))
+        self.ResultLabel.setFont(QtGui.QFont("Segoe UI",FontSize))
+        self.ResultLabel.setText(content)
+        self.ResultLabel.setWordWrap(True)
+        self.ResultGridLayout.addWidget(self.ResultLabel, *position)
+    def ClearLayout(self) :
+        try :
+            for i in reversed(range(6,self.ResultGridLayout.count())) :
+                self.ResultGridLayout.itemAt(i).widget().deleteLater()
+        except :
+            pass
+
+    def SearchComplete(self,ResultList) :
         '''
         结果显示
         '''
         self.LoadingLabel.setText('')
+        self.ClearLayout()
         
-        for i in reversed(range(self.ResultGridLayout.count())) :
-            self.ResultGridLayout.itemAt(i).widget().deleteLater()
-
+        WordList = ResultList[0]
         CountRow = 0
         for i in range(len(WordList)) :
             word = WordList[i]
-            self.ResultLabel = QtWidgets.QLabel(self.gridLayoutWidget)
-            self.ResultLabel.setMinimumSize(QtCore.QSize(200, 30))
-            self.ResultLabel.setFont(QtGui.QFont("Segoe UI",15))
-            self.ResultLabel.setText(word.spelling)
-            self.ResultGridLayout.addWidget(self.ResultLabel, CountRow, 0, 1, 1)
+            self.CreateResultLabel(word.spelling,20,(CountRow, 0, 1, 1))
+
             if word.phonetic :
-                self.ResultLabel = QtWidgets.QLabel(self.gridLayoutWidget)
-                self.ResultLabel.setMinimumSize(QtCore.QSize(200, 30))
-                self.ResultLabel.setFont(QtGui.QFont("Segoe UI",15))
-                self.ResultLabel.setText(word.phonetic)
-                self.ResultGridLayout.addWidget(self.ResultLabel, CountRow, 1, 1, 1)
+                self.CreateResultLabel(word.phonetic,17,(CountRow, 1, 1, 1))
             CountRow += 1    
             
             for j in range(len(word.definitions)) :
+                CountColumn = 1
                 def_ = word.definitions[j]
-                self.ResultLabel = QtWidgets.QLabel(self.gridLayoutWidget)
-                self.ResultLabel.setMinimumSize(QtCore.QSize(200, 30))
-                self.ResultLabel.setWordWrap(True)
-                self.ResultLabel.setFont(QtGui.QFont('Segoe UI',9))
-                self.ResultLabel.setText(def_.get_def())
-                self.ResultGridLayout.addWidget(self.ResultLabel, CountRow, 0, 1, 2)
+                self.CreateResultLabel(def_.PoS,15,(CountRow, 0, 1, 1))
+
+                for k in range(len(def_.special)) :
+                    self.CreateResultLabel(def_.special[k],15,(CountRow, CountColumn, 1, 1))
+                    CountColumn += 1
                 CountRow += 1
-        
+
+                self.CreateResultLabel(def_.content,12,(CountRow, 0, 1, 7))
+                CountRow += 1
+
+                if def_.example :
+                    self.CreateResultLabel('e.g.'+' '*2+def_.example,12,(CountRow, 0, 1, 6))
+                CountRow += 1
+
+        ExampleList = ResultList[1]
+        self.CreateResultLabel('Examples:',15,(CountRow, 0, 1, 1))
+        CountRow += 1
+        for i in range(len(ExampleList)) :
+            self.CreateResultLabel(ExampleList[i],12,(CountRow, 0, 1, 6))
+            CountRow += 1
+
         self.scrollAreaWidgetContents.setLayout(self.ResultGridLayout)
 
+        
     def SearchFail(self) :
         self.LoadingLabel.setText('No Result Found')
     def load(self) :
