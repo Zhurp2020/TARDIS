@@ -33,9 +33,9 @@ def GetTagString(tag):
     '''
     if tag:
         if isinstance(tag, list):
-            return [i.string for i in tag]
+            return [i.string.rstrip(',') for i in tag]
         else:
-            return tag.string
+            return tag.string.rstrip(',')
     else:
         return ''
 
@@ -46,6 +46,7 @@ def ParserDic_com(soup):
             'noun':'n.',
             'verb (used with object)': 'v.t.',
             'verb (used without object)': 'v.i.',
+            'adjective':'adj.',
             '':''
             }
 
@@ -121,5 +122,5 @@ try :
         print(i)
 except NoSuchWord:
     print('No Such Word: {}'.format(word))
-''' 
+'''
 
