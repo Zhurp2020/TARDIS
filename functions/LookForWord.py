@@ -1,10 +1,13 @@
 import requests
 import bs4
-from WordClass import *
+import re
+from functions.WordClass import *
 
 
 # 来源与用于request的网址
-SearcherDict = {'dictionary.com': 'https://www.dictionary.com/browse/{}#'}
+SearcherDict = {'dictionary.com': 'https://www.dictionary.com/browse/{}#',
+                'Merriam-Webster': 'https://www.merriam-webster.com/dictionary/{}'
+                }
 
 class WordSearcher():
     '''
@@ -40,15 +43,26 @@ def GetTagString(tag):
         return ''
 
 
-def ParserDic_com(soup):
-
-    PoSDict = {
+PoSDict = {
             'noun':'n.',
+            'verb':'v.',
             'verb (used with object)': 'v.t.',
             'verb (used without object)': 'v.i.',
+            'verb (used with or without object)':'v.',
             'adjective':'adj.',
+            'adverb':'adv.',
+            'pronoun':'pron.',
+            'abbreviation':'abbr.',
+            'interjection': 'interj.',
+            'conjunction':'conj.',
+            'prepostion':'prep.',
+            'article':'art.',
             '':''
             }
+
+def ParserDic_com(soup):
+
+    
 
     NoResult = soup.find(class_='no-results-title css-1w0dr93 e6aw9qa0')
     if NoResult :
@@ -89,7 +103,66 @@ def ParserDic_com(soup):
     return [WordList,ExampleList]
 
 
-ParserDict = {'dictionary.com': ParserDic_com}
+def ParserMer_Web(soup) :
+    WordList = []
+    WordList = []
+    DefinitionList = []
+    PosParent = soup.find(class_='left-content col-lg-7 col-xl-8')
+    PoSList = []
+    for PosTag in PosParent.children :
+        try :
+            if PosTag['class'] == ['row', 'entry-header'] :
+                PoSList.append(PosTag)
+        except :
+            pass
+    PoSList = [i.string for i in [j.find(class_='important-blue-link') for j in PoSList]] 
+    PoSList = [''.join([j for j in string if j.isalpha()]) for string in PoSList]
+    PoSList = [PoSDict[i] for i in PoSList]
+    DefAreaList = soup.find_all(id=re.compile(r'dictionary-entry-[0-9]+'))
+    inflect = [i for i in soup.find(class_='row headword-row').strings if i.strip() != ';']
+    count = 0
+    for DefAreaTag in DefAreaList:
+        if PoSList[count] != 'verb' :
+            inflect = ''
+        DefTagList = DefAreaTag.find_all(class_=re.compile(r'sb-[0-9]+'))
+        for DefTag in DefTagList:
+            DefTextList = DefTag.find_all(class_='dtText')
+            special = DefTag.find_all(class_='sd')
+            for i in DefTag.find_all(class_='sl') :
+                special.append(i)
+            special = GetTagString(special)
+            for Def in DefTextList:
+                ExampleList = Def.find_all(class_='ex-sent')
+                example = []
+                for i in ExampleList :
+                    for j in i.strings:
+                        example.append(j)
+                DefContent = ''.join([i for i in Def.descendants if isinstance(i,bs4.NavigableString) and not i in example and i.strip() != ':'])
+                example = ', '.join([''.join([j for j in i.strings]) for i in ExampleList])
+                Def = Definition(content=DefContent, PoS=PoSList[count], inflect=inflect, phrase='',
+                                    special=special, example=example)
+                DefinitionList.append(Def)
+        count += 1
+    PhraseList = soup.find_all(class_='dro')             
+    for PhraseTag in PhraseList :
+        phrase = [i for i in PhraseTag.strings][0]
+        PhraseDef = ''.join([i for i in PhraseTag.strings][1:])
+        Def = Definition(content=PhraseDef, PoS='phrase', inflect='', phrase=phrase)
+        DefinitionList.append(Def)
+    spelling = soup.find(class_='hword').string
+    phonetic = "\\"+ soup.find(class_='pr').string.strip() + "\\"
+    WordList.append(Word(spelling = spelling,phonetic=phonetic, definitions=DefinitionList))
+    ExampleTag = soup.find(id='examples-anchor')
+    ExampleTagList = ExampleTag.find_all(class_='ex-sent')
+    ExampleList = []
+    for tag in ExampleTagList:
+        ExampleList.append(' '.join([i.strip() for i in tag.strings]))
+    return [WordList,ExampleList]
+    
+
+ParserDict = {'dictionary.com': ParserDic_com,
+            'Merriam-Webster': ParserMer_Web
+            }
 
 
 class HTMLParser():
@@ -108,18 +181,16 @@ class HTMLParser():
 
 
 '''
-word = 'test'
-NewWordSearcher = WordSearcher('dictionary.com')
+word = 'search'
+NewWordSearcher = WordSearcher('Merriam-Webster')
 SearchResult = NewWordSearcher.search(word)
-NewParser = HTMLParser('dictionary.com')
+NewParser = HTMLParser('Merriam-Webster')
 try :
     result = NewParser.parse(SearchResult)
-    
     for i in result[0]:
         i.show()
-    
-    for i in result[1]  :
-        print(i)
+    for j in result[1] :
+        print(j)
 except NoSuchWord:
     print('No Such Word: {}'.format(word))
 '''

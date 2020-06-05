@@ -14,7 +14,7 @@ class Word(object) :
                 print(i+1,self.examples[i])
 
 class Definition(object) :
-    def __init__(self,content,PoS,inflect,phrase,special,example) :
+    def __init__(self,content,PoS,inflect,phrase=None,special=None,example=None) :
         self.content = content
         self.PoS = PoS.rstrip(',')
         self.inflect = [i.rstrip(',').rstrip('.') for i in inflect]
