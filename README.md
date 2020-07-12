@@ -23,3 +23,6 @@
   + 增加了从Merriam-Webster查词的功能
   + 完善词性显示
   + 已知问题：若干 将在下一版本中修复  
++ V 2.1
+  + 重构核心功能，Merriam-Webster在线词典现在基本没有bugP
+  + 修复了若干bug 

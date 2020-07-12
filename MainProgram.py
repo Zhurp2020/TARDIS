@@ -6,8 +6,6 @@ import time
 
 
 
-
-
 StyleSheetDict = {
     'public':'border-radius: 12px;\n font: 25 15pt "Segoe UI";\n color: white;\n',
     'n.': 'background-color: #c93756;\n',
@@ -22,11 +20,9 @@ StyleSheetDict = {
     'interj.':'background-color: #954416;\n',
     'art.':'background-color: #0f1423;\n',
     'abbr.':'background-color: #21373d\n',
-    'phrase':'',
+    'phrase':'background-color: #19363B\n',
     'special':'color: #867e76;\n font:15pt "Segoe UI";\n'
 }
-
-
 
 
 
@@ -40,17 +36,12 @@ class SearchWordWorker(QtCore.QObject) :
     SearchDone = QtCore.pyqtSignal(list)
     SearchFail = QtCore.pyqtSignal()
     def SearchWord(self,word,source) :
-        NewSearcher = WordSearcher(source)
-        SearchResult = NewSearcher.search(word)
-        NewParser = HTMLParser(source)
+        NewSearcher = WordSearcher(word,source)
         try :
-            ResultList = NewParser.parse(SearchResult)
-            self.SearchDone.emit(ResultList)
+            SearchResult = NewSearcher.SearchWord()
+            self.SearchDone.emit(SearchResult)
         except NoSuchWord:
             self.SearchFail.emit()
-
-
-
 
 
 
@@ -81,11 +72,11 @@ class T_Ui(QtWidgets.QWidget, Ui_Dialog):
         self.setWindowFlags(Qt.Qt.FramelessWindowHint)
 
 
-    def CreateWordLabel(self,content,row) :
+    def CreateWordLabel(self,content,row,column=0) :
         self.WordLabel = QtWidgets.QLabel(self.gridLayoutWidget)
         self.WordLabel.setText(content)
         self.WordLabel.setStyleSheet('font: 30pt "Times New Roman";')
-        self.ResultGridLayout.addWidget(self.WordLabel, row,0,1,1)
+        self.ResultGridLayout.addWidget(self.WordLabel, row,column,1,1)
     def CreatePosLabel(self,content,row) :
         self.PosLabel = QtWidgets.QLabel(self.gridLayoutWidget)
         self.PosLabel.setText(content)
@@ -114,6 +105,13 @@ class T_Ui(QtWidgets.QWidget, Ui_Dialog):
         self.line.setMaximumSize(900,1)
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.ResultGridLayout.addWidget(self.line, row,0,1,2)
+    def CreateWordExampleLabel(self,content,row):
+        self.ExampleLabel = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.ExampleLabel.setMinimumSize(900,20)
+        self.ExampleLabel.setText(content)
+        self.ExampleLabel.setStyleSheet('font: 15pt "Segoe UI";\n')
+        self.ExampleLabel.setWordWrap(True)
+        self.ResultGridLayout.addWidget(self.ExampleLabel, row,0,1,2)
     def ClearLayout(self) :
         try :
             for i in reversed(range(2,self.ResultGridLayout.count())) :
@@ -133,37 +131,41 @@ class T_Ui(QtWidgets.QWidget, Ui_Dialog):
         for i in range(len(WordList)) :
             word = WordList[i]
             self.CreateWordLabel(word.spelling,CountRow)
+            if word.phonetic:
+                self.CreateWordLabel(word.phonetic,CountRow,column=1)
             CountRow += 1
 
             for j in range(len(word.definitions)):
                 def_ = word.definitions[j] 
+                RightCountRow = CountRow
                 if def_.PoS :
-                    self.CreatePosLabel(def_.PoS,CountRow)   
-                self.CreateDefLabel(def_.content,CountRow,1+len(def_.special)) 
-                CountRow += 1   
+                    self.CreatePosLabel(def_.PoS,CountRow) 
+                    CountRow += 1  
                 for k in range(len(def_.special)) :
                     self.CreateSpecialLabel(def_.special[k],CountRow)
                     CountRow += 1
-                CountRow += 1
-                if def_.example:
-                    self.CreateDefLabel(def_.example,CountRow,1)
+                if def_.phrase:
+                    self.CreateSpecialLabel(def_.phrase,CountRow)
+                    CountRow += 1    
+                if def_.inflect:
+                    self.CreateSpecialLabel('-'.join(def_.inflect),CountRow)
                     CountRow += 1
+                self.CreateDefLabel(def_.content,RightCountRow,1) 
+                RightCountRow += 1
+                if def_.example:
+                    self.CreateDefLabel('e.g.'+'\n'.join(def_.example),RightCountRow,1)
+                    RightCountRow += 1
+                CountRow = max(CountRow,RightCountRow)
                 self.CreateSplitLine(CountRow)
                 CountRow += 1
-                
-
-
-
-
-        '''
-
+         
         ExampleList = ResultList[1]
-        self.CreateResultLabel('Examples:',15,(CountRow, 0, 1, 1))
+        self.CreateWordLabel('Examples:',CountRow)
         CountRow += 1
         for i in range(len(ExampleList)) :
-            self.CreateResultLabel(ExampleList[i],12,(CountRow, 0, 1, 9))
+            self.CreateWordExampleLabel(ExampleList[i],CountRow)
             CountRow += 1
-'''
+
         self.scrollAreaWidgetContents.setLayout(self.ResultGridLayout)
 
         

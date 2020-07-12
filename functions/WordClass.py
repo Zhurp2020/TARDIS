@@ -1,23 +1,19 @@
 class Word(object) :
-    def __init__(self,spelling,phonetic=None,definitions=None,examples=None) :
+    def __init__(self,spelling,phonetic=None,definitions=None) :
         self.spelling = spelling
         self.phonetic = phonetic
         self.definitions = definitions 
-        self.examples = examples
     def show(self) :
         print(self.spelling,self.phonetic)
         for i in self.definitions :
             i.show()
-        if self.examples :
-            print('examples:')
-            for i in range(len(self.examples)) :
-                print(i+1,self.examples[i])
+
 
 class Definition(object) :
-    def __init__(self,content,PoS,inflect,phrase=None,special=None,example=None) :
+    def __init__(self,content:str,PoS:str,inflect:list,phrase:str,special:list,example:list) :
         self.content = content
-        self.PoS = PoS.rstrip(',')
-        self.inflect = [i.rstrip(',').rstrip('.') for i in inflect]
+        self.PoS = PoS
+        self.inflect = inflect
         self.special = special
         self.example = example
         self.phrase = phrase
