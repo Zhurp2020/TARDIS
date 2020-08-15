@@ -6,6 +6,8 @@ from functions.WordClass import *
 
 PoSDict = {
     'noun': 'n.',
+    'countable noun':'c.n.',
+    'uncountable noun':'u.n.',
     'verb': 'v.',
     'verb (used with object)': 'v.t.',
     'verb (used without object)': 'v.i.',
@@ -276,11 +278,89 @@ class ParserMer_Web(ParserDic_com):
                 PoS = ''
                 inflect = []
         self.ExampleList = self.GetWordExample()
-   
+
+
+
+class ParserColins(ParserDic_com):
+    def __init__(self, target):
+        super().__init__(target)
+    def CheckNoResult(self):
+        NoResult = self.soup.find(class_='spellcheck_wrapper')
+        if NoResult:
+            raise NoSuchWord
+    def GetSoup(self):
+        header = {
+            'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
+        }
+        SearchResult = requests.get('https://www.collinsdictionary.com/dictionary/english/{}'.format(self.target),headers=header).text
+        self.soup = bs4.BeautifulSoup(SearchResult, features="html.parser")
+    def GetDictArea(self):
+        DictAreaTag = self.soup.find(class_='dictionary Cob_Adv_Brit dictentry')
+        return DictAreaTag
+    def GetSpelling(self, tag):
+        spelling = tag.find(class_='orth').string
+        return spelling
+    def GetPhonetic(self, tag):
+        phonetic = tag.find(class_='pron type-').strings
+        phonetic = '/'+''.join([i for i in phonetic if i != '\n'])+'/'
+        return phonetic
+    def GetInflect(self, tag):
+        InflectTagList = tag.find(class_='form inflected_forms type-infl').find_all(class_='orth')
+        inflect = [i.string for i in InflectTagList]
+        return inflect
+    def GetDefList(self, tag):
+        DefList = tag.find_all(class_='hom')
+        return DefList
+    def GetPos(self, tag):
+        PoS = GetTagString(tag.find(class_='gramGrp pos')) 
+        PoS = GetPoSAbbr(PoS)
+        return PoS
+    def GetDefContent(self, tag):
+        try:
+            DefContentTag = tag.find(class_='def').strings
+            content = ''.join([i.replace('\n','') for i in DefContentTag])
+            return content
+        except:
+            DefContentTag = tag.strings
+            content = ''.join([i.replace('\n','') for i in DefContentTag][1:])
+            return content
+    def GetDefExample(self, tag):
+        example = []
+        ExampleTagList = tag.find_all(class_='cit type-example')
+        for ExampleTag in ExampleTagList:
+            text = ExampleTag.string
+            if text is None :
+                text = ExampleTag.find(class_='quote').string
+            example.append(text)
+        return example
+    def GetWordExample(self):
+        example = []
+        ExampleTagList = self.soup.find(class_='assets').find_all(class_='cit')
+        for ExampleTag in ExampleTagList:
+            text = ''.join([i.replace('\n','') for i in ExampleTag.find(class_='quote').strings])
+            example.append(text)
+        return example
+    def parse(self):
+        DefinitionList = []
+        DictAreaTag = self.GetDictArea()
+        spelling = self.GetSpelling(DictAreaTag)
+        phonetic = self.GetPhonetic(DictAreaTag)
+        inflect = self.GetInflect(DictAreaTag)
+        DefList = self.GetDefList(DictAreaTag)
+        for DefTag in DefList:
+            PoS = self.GetPos(DefTag)
+            content = self.GetDefContent(DefTag)
+            example = self.GetDefExample(DefTag)
+            definition = Definition(content=content,PoS=PoS,inflect=inflect,phrase='',special=[],example=example)
+            DefinitionList.append(definition)
+        word = Word(spelling=spelling,phonetic=phonetic,definitions=DefinitionList)
+        self.WordList.append(word)
+        self.ExampleList = self.GetWordExample()
 
 
 ParserDict = {'dictionary.com': ParserDic_com,
-              'Merriam-Webster': ParserMer_Web
+              'Merriam-Webster': ParserMer_Web,
+              'colins': ParserColins
               }
 
 class WordSearcher():
@@ -292,15 +372,14 @@ class WordSearcher():
         self.result = searcher.GetResult()
         return self.result
         
-
 '''
-word = 'drive'
-source = 'dictionary.com'
+word = 'search'
+source = 'colins'
 NewWordSearcher = WordSearcher(word,source)
 result = NewWordSearcher.SearchWord()
+
 for i in result[0] :
     i.show()
 for i in result[1] :
     print(i)
 '''
-

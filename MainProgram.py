@@ -9,6 +9,8 @@ import time
 StyleSheetDict = {
     'public':'border-radius: 12px;\n font: 25 15pt "Segoe UI";\n color: white;\n',
     'n.': 'background-color: #c93756;\n',
+    'c.n.': 'background-color: #FF6666;\n',
+    'u.n.': 'background-color: #CC3333;\n',
     'v.t.': 'background-color: #057748;\n',
     'v.i.': 'background-color: #00e500;\n',
     'v.': 'background-color: #0aa344;\n',

@@ -32,12 +32,14 @@ class Ui_Dialog(object):
         self.SourceChosser = QtWidgets.QComboBox(self.gridLayoutWidget)
         self.SourceChosser.setMinimumSize(QtCore.QSize(110, 20))
         font = QtGui.QFont()
+        font.setFamily("Segoe UI")
         font.setPointSize(12)
         self.SourceChosser.setFont(font)
         self.SourceChosser.setStyleSheet("border-radius: 5px")
         self.SourceChosser.setEditable(False)
         self.SourceChosser.setFrame(False)
         self.SourceChosser.setObjectName("SourceChosser")
+        self.SourceChosser.addItem("")
         self.SourceChosser.addItem("")
         self.SourceChosser.addItem("")
         self.gridLayout.addWidget(self.SourceChosser, 0, 3, 1, 1)
@@ -61,6 +63,7 @@ class Ui_Dialog(object):
         self.WordInput.setMinimumSize(QtCore.QSize(150, 30))
         self.WordInput.setMaximumSize(QtCore.QSize(150, 16777215))
         font = QtGui.QFont()
+        font.setFamily("Segoe UI")
         font.setPointSize(12)
         self.WordInput.setFont(font)
         self.WordInput.setStyleSheet("border:5px;\n"
@@ -117,7 +120,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "TARDIS"))
-        self.SourceChosser.setCurrentText(_translate("Dialog", "dictionary.com"))
         self.SourceChosser.setItemText(0, _translate("Dialog", "dictionary.com"))
         self.SourceChosser.setItemText(1, _translate("Dialog", "Merriam-Webster"))
+        self.SourceChosser.setItemText(2, _translate("Dialog", "colins"))
         self.WordInput.setPlaceholderText(_translate("Dialog", "input word"))

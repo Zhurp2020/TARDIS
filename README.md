@@ -24,5 +24,7 @@
   + 完善词性显示
   + 已知问题：若干 将在下一版本中修复  
 + V 2.1
-  + 重构核心功能，Merriam-Webster在线词典现在基本没有bugP
+  + 重构核心功能，Merriam-Webster在线词典现在基本没有bug
   + 修复了若干bug 
++ V 2.2
+  + 增加功能：从colins词典查词
