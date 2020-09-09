@@ -28,3 +28,7 @@
   + 修复了若干bug 
 + V 2.2
   + 增加功能：从colins词典查词
++ V 2.2.5
+  + 修复bug: Merriam-Webster查找单词如果无例子会崩溃
+  + 修复bug: Merriam-webster如果没有找到单词会崩溃
+  + 修复bug: Colins如果没有找到单词会崩溃

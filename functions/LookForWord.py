@@ -151,7 +151,8 @@ class ParserMer_Web(ParserDic_com):
         self.soup = bs4.BeautifulSoup(SearchResult, features="html.parser")
     def CheckNoResult(self):
         NoResult = self.soup.find(class_='missing-query')
-        if NoResult:
+        NoResult2 = self.soup.find(class_='words_fail_us_cont search-results')
+        if NoResult or NoResult2:
             raise NoSuchWord
     def GetAllTagList(self):
         AllTagParent = self.soup.find(class_='left-content col-lg-7 col-xl-8')
@@ -235,6 +236,8 @@ class ParserMer_Web(ParserDic_com):
             return phrase
     def GetWordExample(self):
         ExampleTag = self.soup.find(id='examples-anchor')
+        if not ExampleTag:
+            return []
         ExampleTagList = ExampleTag.find_all(class_='ex-sent')
         ExampleList = []
         for tag in ExampleTagList:
@@ -341,6 +344,7 @@ class ParserColins(ParserDic_com):
             example.append(text)
         return example
     def parse(self):
+        self.CheckNoResult()
         DefinitionList = []
         DictAreaTag = self.GetDictArea()
         spelling = self.GetSpelling(DictAreaTag)
