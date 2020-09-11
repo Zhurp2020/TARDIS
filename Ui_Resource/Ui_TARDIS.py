@@ -42,6 +42,7 @@ class Ui_Dialog(object):
         self.SourceChosser.addItem("")
         self.SourceChosser.addItem("")
         self.SourceChosser.addItem("")
+        self.SourceChosser.addItem("")
         self.gridLayout.addWidget(self.SourceChosser, 0, 3, 1, 1)
         self.SearchButton = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.SearchButton.setStyleSheet("background: none;\n"
@@ -77,7 +78,7 @@ class Ui_Dialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 979, 553))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 979, 552))
         self.scrollAreaWidgetContents.setMinimumSize(QtCore.QSize(0, 0))
         self.scrollAreaWidgetContents.setStyleSheet("border:none")
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
@@ -123,4 +124,5 @@ class Ui_Dialog(object):
         self.SourceChosser.setItemText(0, _translate("Dialog", "dictionary.com"))
         self.SourceChosser.setItemText(1, _translate("Dialog", "Merriam-Webster"))
         self.SourceChosser.setItemText(2, _translate("Dialog", "colins"))
+        self.SourceChosser.setItemText(3, _translate("Dialog", "海词"))
         self.WordInput.setPlaceholderText(_translate("Dialog", "input word"))

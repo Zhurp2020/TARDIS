@@ -1,7 +1,10 @@
 import requests
 import bs4
 import re
-from functions.WordClass import *
+try:
+    from functions.WordClass import *
+except:
+    from WordClass import *
 
 
 PoSDict = {
@@ -10,7 +13,9 @@ PoSDict = {
     'uncountable noun':'u.n.',
     'verb': 'v.',
     'verb (used with object)': 'v.t.',
+    'vt.':'v.t.',
     'verb (used without object)': 'v.i.',
+    'vi.':'v.i.',
     'verb (used with or without object)': 'v.',
     'Verb Phrases': 'phrase',
     'adjective': 'adj.',
@@ -361,10 +366,61 @@ class ParserColins(ParserDic_com):
         self.WordList.append(word)
         self.ExampleList = self.GetWordExample()
 
+class ParserHaici(ParserDic_com):
+    def __init__(self, target):
+        super().__init__(target)
+    def CheckNoResult(self):
+        NoResult = self.soup.find(class_='oop')
+        if NoResult:
+            raise NoSuchWord
+    def GetSoup(self):
+        text = requests.get('http://dict.cn/{}'.format(self.target)).text
+        self.soup = bs4.BeautifulSoup(text,features="html.parser")
+    def GetWordTag(self):
+        return self.soup.find(class_='word')
+    def GetSpelling(self, tag):
+        spelling = tag.find(class_='word-cont').find(class_='keyword').string
+        return spelling
+    def GetPhonetic(self, tag):
+        phonetic = tag.find(class_='phonetic').find(lang='EN-US').string
+        return phonetic
+    def GetDefList(self,tag):
+        DefTagList = tag.find(class_='dict-basic-ul').find_all('li')
+        return DefTagList
+    def GetPos(self, tag):
+        pos = GetPoSAbbr(tag.find('span').string) 
+        return pos
+    def GetDefContent(self, tag):
+        return tag.find('strong').string
+    def GetInflect(self, tag):
+        InflectTagList = tag.find(class_='shape').find_all('a')
+        InflectList = [i.string.strip() for i in InflectTagList]
+        return InflectList
+    def GetWordExample(self):
+        ExampleTagList = self.soup.find(class_='section sent').find(class_='layout sort').find_all('li')
+        ExampleList = ['\n'.join(list(i.strings)) for i in ExampleTagList]
+        return ExampleList
+    def parse(self):
+        self.CheckNoResult()
+        DefList = []
+        WordTag = self.GetWordTag()
+        spelling = self.GetSpelling(WordTag)
+        phonetic = self.GetPhonetic(WordTag)
+        DefTagList = self.GetDefList(WordTag)
+        inflect = self.GetInflect(WordTag)
+        for DefTag in DefTagList[:-1]:
+            pos = self.GetPos(DefTag)
+            content = self.GetDefContent(DefTag)
+            def_ = Definition(content,pos,inflect,phrase='',special=[],example=[])
+            DefList.append(def_)
+        word = Word(spelling,phonetic,DefList)
+        self.WordList.append(word)
+        self.ExampleList = self.GetWordExample()
 
 ParserDict = {'dictionary.com': ParserDic_com,
               'Merriam-Webster': ParserMer_Web,
-              'colins': ParserColins
+              'colins': ParserColins,
+              '海词':ParserHaici
               }
 
 class WordSearcher():
@@ -377,8 +433,8 @@ class WordSearcher():
         return self.result
         
 '''
-word = 'search'
-source = 'colins'
+word = 'test'
+source = '海词'
 NewWordSearcher = WordSearcher(word,source)
 result = NewWordSearcher.SearchWord()
 

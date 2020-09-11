@@ -87,6 +87,11 @@
          <string>colins</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>海词</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item row="0" column="4">
@@ -170,7 +175,7 @@ border-radius:15px</string>
           <x>0</x>
           <y>0</y>
           <width>979</width>
-          <height>553</height>
+          <height>552</height>
          </rect>
         </property>
         <property name="minimumSize">
