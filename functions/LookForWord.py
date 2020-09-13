@@ -11,6 +11,7 @@ PoSDict = {
     'noun': 'n.',
     'countable noun':'c.n.',
     'uncountable noun':'u.n.',
+    'variable noun':'v.n.',
     'verb': 'v.',
     'verb (used with object)': 'v.t.',
     'vt.':'v.t.',
@@ -199,7 +200,10 @@ class ParserMer_Web(ParserDic_com):
         phonetic = ''.join([i.strip() for i in tag.find(class_='prs').strings])
         return phonetic
     def GetInflect(self,tag):
-        inflect = [i.strip() for i in tag.find(class_='vg-ins').strings if i.strip() != '' ]
+        try:
+            inflect = [i.strip() for i in tag.find(class_='vg-ins').strings if i.strip() != '' ]
+        except:
+            return []
         inflect = [i for i in inflect if i != ',' and i != ';']
         for i in range(len(inflect)):
             if inflect[i] != '\\':
@@ -313,14 +317,19 @@ class ParserColins(ParserDic_com):
         phonetic = '/'+''.join([i for i in phonetic if i != '\n'])+'/'
         return phonetic
     def GetInflect(self, tag):
-        InflectTagList = tag.find(class_='form inflected_forms type-infl').find_all(class_='orth')
-        inflect = [i.string for i in InflectTagList]
+        try:
+            InflectTagList = tag.find(class_='form inflected_forms type-infl').find_all(class_='orth')
+            inflect = [i.string for i in InflectTagList]
+        except:
+            inflect = []
         return inflect
     def GetDefList(self, tag):
         DefList = tag.find_all(class_='hom')
         return DefList
     def GetPos(self, tag):
         PoS = GetTagString(tag.find(class_='gramGrp pos')) 
+        if not PoS:
+            PoS = GetTagString(tag.find(class_='gramGrp').find(class_='pos'))
         PoS = GetPoSAbbr(PoS)
         return PoS
     def GetDefContent(self, tag):
@@ -433,8 +442,8 @@ class WordSearcher():
         return self.result
         
 '''
-word = 'test'
-source = '海词'
+word = 'microscopic'
+source = 'Merriam-Webster'
 NewWordSearcher = WordSearcher(word,source)
 result = NewWordSearcher.SearchWord()
 

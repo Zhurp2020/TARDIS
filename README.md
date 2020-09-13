@@ -34,3 +34,6 @@
   + 修复bug: Colins如果没有找到单词会崩溃
 + V 2.3
   + 增加功能：从海词查词
++ V 2.3.2
+  + 修复bug:colins和merriam webster词典在某些情况下崩溃
+  + 修复bug:colins有时找不到词性

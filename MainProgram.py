@@ -11,6 +11,7 @@ StyleSheetDict = {
     'n.': 'background-color: #c93756;\n',
     'c.n.': 'background-color: #FF6666;\n',
     'u.n.': 'background-color: #CC3333;\n',
+    'v.n.': 'background-color: #DE7C7C;\n',
     'v.t.': 'background-color: #057748;\n',
     'v.i.': 'background-color: #00e500;\n',
     'v.': 'background-color: #0aa344;\n',
